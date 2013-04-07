@@ -8,7 +8,7 @@ gem 'multi_json'
 gem 'mysql2'
 gem 'pg'
 gem 'sqlite3'
-gem "activemerchant",'~> 1.31', :git => 'git://github.com/RedHills/active_merchant.git'
+
 
 # Gems used only for assets and not required
 # in production environments by default.
