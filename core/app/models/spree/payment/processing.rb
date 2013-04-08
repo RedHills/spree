@@ -2,6 +2,7 @@ module Spree
   class Payment < ActiveRecord::Base
     module Processing
       def process!
+         Rails.logger.debug ">>>>>>>>>>In process!!"
         if payment_method && payment_method.source_required?
           if source
             if !processing?
@@ -9,6 +10,7 @@ module Spree
                 if payment_method.auto_capture?
                   purchase!
                 else
+                  Rails.logger.debug "$$$$$$$$$$$$$$$$$$Going to authorize - bad!!"                  
                   authorize!
                 end
               else
