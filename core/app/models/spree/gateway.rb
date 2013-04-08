@@ -6,9 +6,7 @@ module Spree
 
     preference :server, :string, :default => 'test'
     preference :test_mode, :boolean, :default => true
-    #Change to SagePay
-    #ActiveMerchant::Billing::SagePayGateway.test_url =
-    #ActiveMerchant::Billing::SagePayGateway.live_url =  
+
     attr_accessible :preferred_server, :preferred_test_mode
 
     def payment_source_class
