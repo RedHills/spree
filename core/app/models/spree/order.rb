@@ -24,6 +24,7 @@ module Spree
         order.payment_required?
       }
       go_to_state :confirm, :if => lambda { |order| order.confirmation_required? }
+      go_to_state :threed_secure, if: ->(order) { order.md? }   
       go_to_state :complete, :if => lambda { |order| (order.payment_required? && order.has_unprocessed_payments?) || !order.payment_required? }
       remove_transition :from => :delivery, :to => :confirm
     end
@@ -32,7 +33,7 @@ module Spree
 
     attr_accessible :line_items, :bill_address_attributes, :ship_address_attributes, :payments_attributes,
                     :ship_address, :bill_address, :payments_attributes, :line_items_attributes, :number,
-                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency
+                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency, :md
 
     if Spree.user_class
       belongs_to :user, :class_name => Spree.user_class.to_s
