@@ -8,7 +8,10 @@ module Spree
     preference :test_mode, :boolean, default: true
 
     attr_accessible :preferred_server, :preferred_test_mode
-
+    
+    ActiveMerchant::Billing::SagePayGateway.test_url =
+    ActiveMerchant::Billing::SagePayGateway.live_url =    
+    
     def payment_source_class
       CreditCard
     end
@@ -23,6 +26,7 @@ module Spree
       gateway_options.delete :login if gateway_options.has_key?(:login) and gateway_options[:login].nil?
       ActiveMerchant::Billing::Base.gateway_mode = gateway_options[:server].to_sym
       @provider ||= provider_class.new(gateway_options)
+      
     end
 
     def options

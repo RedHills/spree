@@ -23,6 +23,7 @@ module Spree
         order.payment_required?
       }
       go_to_state :confirm, if: ->(order) { order.confirmation_required? }
+      go_to_state :threed_secure, if: ->(order) { order.md? }      
       go_to_state :complete, if: ->(order) {
         (order.payment_required? && order.has_unprocessed_payments?) || !order.payment_required?
       }
@@ -35,7 +36,7 @@ module Spree
                     :payments_attributes, :ship_address, :bill_address, :currency,
                     :payments_attributes, :line_items_attributes, :number, :email,
                     :use_billing, :special_instructions, :shipments_attributes,
-                    :coupon_code
+                    :coupon_code, :md
 
     attr_reader :coupon_code
 
@@ -374,7 +375,7 @@ module Spree
     end
 
     # Finalizes an in progress order after checkout is complete.
-    # Called after transition to complete state when payments will have been processed
+    # Called after transition to complete state when payments will have been processed  q
     def finalize!
       touch :completed_at
 

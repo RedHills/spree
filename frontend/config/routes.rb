@@ -13,7 +13,8 @@ Spree::Core::Engine.routes.prepend do
   put '/checkout/update/:state', :to => 'checkout#update', :as => :update_checkout
   get '/checkout/:state', :to => 'checkout#edit', :as => :checkout_state
   get '/checkout', :to => 'checkout#edit' , :as => :checkout
-
+  get '/3dsreturn', :to => '3dsecure#secure_callback'
+  post '/3dsreturn', :to => '3dsecure#secure_callback'  
   populate_redirect = redirect do |params, request|
     request.flash[:error] = I18n.t(:populate_get_error)
     request.referer || '/cart'
