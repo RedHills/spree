@@ -1,5 +1,5 @@
 module Spree
-  class Protx3dsController < ApplicationController
+  class Sage3dsController < ApplicationController
     
     ssl_required  
     protect_from_forgery :except => :callback_3dsecure

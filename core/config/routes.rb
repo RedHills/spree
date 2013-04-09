@@ -184,6 +184,6 @@ Spree::Core::Engine.routes.draw do
 
   match '/unauthorized', :to => 'home#unauthorized', :as => :unauthorized
   match '/content/cvv', :to => 'content#cvv', :as => :cvv
-  match '/callback3dsecure', :to => 'sage_3ds#callback_3dsecure'
+  match '/callback3dsecure', :to => 'sage3ds#callback_3dsecure'
   match '/content/*path', :to => 'content#show', :via => :get, :as => :content
 end
