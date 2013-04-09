@@ -13,13 +13,16 @@ module Spree
     before_filter :load_order
     before_filter :ensure_valid_state
     before_filter :associate_user
-    before_filter :check_authorization
+    before_filter :check_authorization 
     rescue_from Spree::Core::GatewayError, :with => :rescue_from_spree_gateway_error
 
     respond_to :html
-
+   
     helper 'spree/orders'
-
+    
+    def callback_3dsecure
+    end  
+    
     # Updates the order and advances to the next state (when possible.)
     # Overriden by the promo gem if it exists.
     def update

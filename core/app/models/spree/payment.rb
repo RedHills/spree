@@ -25,6 +25,7 @@ module Spree
     scope :completed, with_state('completed')
     scope :pending, with_state('pending')
     scope :failed, with_state('failed')
+    scope :requires_3ds, with_state('requires_3ds')    
     scope :valid, where("state NOT IN (?)", %w(failed invalid))
 
     after_rollback :persist_invalid
@@ -48,6 +49,10 @@ module Spree
       # With card payments this represents authorizing the payment
       event :pend do
         transition :from => ['checkout', 'processing'], :to => 'pending'
+      end
+      # With card payments this represents completing a purchase or capture transaction
+      event :requires_3ds do
+        transition :from => ['processing', 'pending', 'checkout'], :to => 'pending'
       end
       # With card payments this represents completing a purchase or capture transaction
       event :complete do

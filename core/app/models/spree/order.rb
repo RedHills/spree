@@ -24,7 +24,7 @@ module Spree
         order.payment_required?
       }
       go_to_state :confirm, :if => lambda { |order| order.confirmation_required? }
-      go_to_state :threed_secure, if: ->(order) { order.md? }   
+      go_to_state :threed_secure, :if => lambda {|order|  order.md? }   
       go_to_state :complete, :if => lambda { |order| (order.payment_required? && order.has_unprocessed_payments?) || !order.payment_required? }
       remove_transition :from => :delivery, :to => :confirm
     end
@@ -91,6 +91,10 @@ module Spree
     def self.by_number(number)
       where(:number => number)
     end
+    
+    def self.by_md(md)
+      where(:md => md)        
+    end  
 
     def self.between(start_date, end_date)
       where(:created_at => start_date..end_date)
@@ -372,6 +376,7 @@ module Spree
       credit_card_ids = payments.from_credit_card.pluck(:source_id).uniq
       CreditCard.scoped(:conditions => { :id => credit_card_ids })
     end
+    
 
     # Finalizes an in progress order after checkout is complete.
     # Called after transition to complete state when payments will have been processed

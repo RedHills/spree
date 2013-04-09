@@ -31,7 +31,7 @@ module Spree
         started_processing!
         gateway_action(source, :purchase, :complete)
       end
-
+      
       def capture!
         return true if completed?
         started_processing!
@@ -157,6 +157,9 @@ module Spree
           self.avs_response = response.avs_result['code']
         end
         self.send("#{success_state}!")
+      elsif 
+        self.send(:requires_3ds)
+        
       else
         self.send(failure_state)
         gateway_error(response)
