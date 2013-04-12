@@ -126,7 +126,9 @@ module Spree
     def amount
       line_items.sum(&:amount)
     end
+    
 
+    
     def currency
       self[:currency] || Spree::Config[:currency]
     end
@@ -457,16 +459,17 @@ module Spree
     def pending_payments
       payments.select {|p| p.state == "checkout"}
     end
-  def threeds_check_payments
+    def threeds_check_payments
       payments.select {|p| p.state == "3ds_check"}
     end
+    
     def process_3ds (md,pares)
       begin
         threeds_check_payments.each do |payment|
-            payment.payment_method.complete_3ds(md,pares) 
-
+        return payment.complete_3ds(md,pares) 
         end
-      rescue Core::GatewayError
+    rescue Core::GatewayError => ge
+        logger.error "Problem on call => #{ge.to_s}"
         !!Spree::Config[:allow_checkout_on_gateway_error]
       end
     end

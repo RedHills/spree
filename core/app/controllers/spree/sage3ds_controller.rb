@@ -10,25 +10,28 @@ module Spree
           order=Order.by_md(params[:MD])
           order.save!
           #Call sage with md and pares
+          logger.info "About to call process_3ds"
           response = order.process_3ds( params[:MD] , params[:PARes])
-          
-          if response[:status]=='OK'
-              order.success
-              order.get_3dpending_payment.complete
-              order.sage_vpstxid=response[:VPSTxId]
-              order.sage_sage_txauthcode=response[:TxAuthNo] 
-              flash.notice = t(:order_processed_successfully)
-              order.save!
-              order.complete!             
+          logger.info "Response #{response.to_s}"
+          if !response.empty? && response[:status]=='OK'
+            order.sage_vpstxid=response[:VPSTxId] 
+            order.sage_sage_txauthcode=response[:TxAuthNo]
+            flash.notice = t(:order_processed_successfully)
+            order.save!
+            order.complete_3d_secure!             
+            logger.info "3d >>>> order set to complete"            
           else
+             logger.info "3d failed by provider"            
              flash.notice = t(:order_processed_successfully)
-             order.get_3dpending_payment.failure
+             order.fail_3d_secure!
+           
+             order.get_3dpending_payment.fail_3d! if order.get_3dpending_payment
               
           end 
 
         else
           logger.error("Callback for 3d Secure missing params")
-          #raise Core::GatewayError.new("Callback for 3d Secure missing params")
+
         end  
     end 
     

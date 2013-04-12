@@ -35,7 +35,11 @@ module Spree
       state_will_change!
       save 
     end
-
+    
+    
+    def self.find_for_order(order_id)
+      where(:order_id => order_id).first
+    end  
     # order state machine (see http://github.com/pluginaweek/state_machine/tree/master for details)
     state_machine :initial => 'checkout' do
       # With card payments, happens before purchase or authorization happens
@@ -46,6 +50,9 @@ module Spree
       event :failure do
         transition :from => ['pending', 'processing'], :to => 'failed'
       end
+      event :fail_3d do
+        transition :from => ['pending', 'processing','3ds_check','balance_due'], :to => 'failed_3d'
+      end      
       # With card payments this represents authorizing the payment
       event :pend do
         transition :from => ['checkout', 'processing'], :to => 'pending'

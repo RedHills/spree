@@ -66,7 +66,7 @@ module Spree
                 transition :to => :threed_secure
               end
               event :complete_3d_secure do
-                transition :to => :complete
+                transition :to => :complete_3d
               end
               event :fail_3d_secure do
                 transition :to => :cancel
@@ -83,6 +83,7 @@ module Spree
               before_transition :to => :delivery, :do => :remove_invalid_shipments!
 
               after_transition :to => :complete, :do => :finalize!
+              after_transition :to => :complete_3d, :do => :finalize!
               after_transition :to => :delivery, :do => :create_tax_charge!
               after_transition :to => :resumed,  :do => :after_resume
               after_transition :to => :canceled, :do => :after_cancel

@@ -6,7 +6,7 @@ module Spree
         if payment_method && payment_method.source_required?
          logger.info "!!!!!!!!!!!payment and source req!"          
           if source
-           logger.info "!!!!!!!!!!!source"                      
+           logger.info "!!!!!!!!!!!#{source}"                      
             if !processing?
               if payment_method.supports?(source)
                 logger.info "!!!!!!!!!!!Pay method supports source"
@@ -179,7 +179,7 @@ module Spree
     def handle_response(response, success_state, failure_state)
       record_response(response)
 
-      if response.success?
+      if response.success? 
         unless response.authorization.nil?
           self.response_code = response.authorization
           self.avs_response = response.avs_result['code']
