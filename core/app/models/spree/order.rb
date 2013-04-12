@@ -25,7 +25,7 @@ module Spree
       }
       go_to_state :confirm, :if => lambda { |order| order.confirmation_required? }
       go_to_state :threed_secure, :if => lambda {|order|  order.md? }   
-      go_to_state :complete, :if => lambda { |order| (order.payment_required? && order.has_unprocessed_payments?) || !order.payment_required? }
+      go_to_state :complete, :if => lambda { |order| (order.payment_required? && order.has_unprocessed_payments?) || !order.payment_required?  }
       remove_transition :from => :delivery, :to => :confirm
     end
 
@@ -33,8 +33,9 @@ module Spree
 
     attr_accessible :line_items, :bill_address_attributes, :ship_address_attributes, :payments_attributes,
                     :ship_address, :bill_address, :payments_attributes, :line_items_attributes, :number,
-                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency, :md
-
+                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency, :md, :acs_url, :pareq
+    #extra attrs for 3d secure stuff
+    attr_accessor  :requires_3dsecure, :pares
     if Spree.user_class
       belongs_to :user, :class_name => Spree.user_class.to_s
     else
@@ -93,7 +94,7 @@ module Spree
     end
     
     def self.by_md(md)
-      where(:md => md)        
+      where(:md => md).first        
     end  
 
     def self.between(start_date, end_date)
@@ -133,7 +134,9 @@ module Spree
     def display_outstanding_balance
       Spree::Money.new(outstanding_balance, { :currency => currency })
     end
-
+      def get_3dpending_payment
+        Payment.where(:order_id => self.id,:state => '3ds_check').first
+      end  
     def display_item_total
       Spree::Money.new(item_total, { :currency => currency })
     end
@@ -256,7 +259,12 @@ module Spree
       return false if state_changes.empty? || state_changes.last.previous_state.nil?
       true
     end
-
+    
+    def is_awaiting_3ds
+        logger.info ">>>> called is awaiting 3ds #{self.md} | #{self.sage_vpstxid}"
+        return self.md && !self.sage_vpstxid
+    end  
+    
     def awaiting_returns?
       return_authorizations.any? { |return_authorization| return_authorization.authorized? }
     end
@@ -381,29 +389,36 @@ module Spree
     # Finalizes an in progress order after checkout is complete.
     # Called after transition to complete state when payments will have been processed
     def finalize!
-      touch :completed_at
-      InventoryUnit.assign_opening_inventory(self)
+      logger.info '>>>>IN FINALIZE'
+      self.reload
+      logger.info '>>>>IN FINALIZE >> After reload'      
+      if self.is_awaiting_3ds
+        self.requires_3d_secure!
+      else
+        touch :completed_at
+        InventoryUnit.assign_opening_inventory(self)
 
-      # lock all adjustments (coupon promotions, etc.)
-      adjustments.each { |adjustment| adjustment.update_column('locked', true) }
+        # lock all adjustments (coupon promotions, etc.)
+        adjustments.each { |adjustment| adjustment.update_column('locked', true) }
 
-      # update payment and shipment(s) states, and save
-      updater = OrderUpdater.new(self)
-      updater.update_payment_state
-      shipments.each { |shipment| shipment.update!(self) }
-      updater.update_shipment_state
-      save
+        # update payment and shipment(s) states, and save
+        updater = OrderUpdater.new(self)
+        updater.update_payment_state
+        shipments.each { |shipment| shipment.update!(self) }
+        updater.update_shipment_state
+        save
 
-      deliver_order_confirmation_email
+        deliver_order_confirmation_email
 
-      self.state_changes.create({
-        :previous_state => 'cart',
-        :next_state     => 'complete',
-        :name           => 'order' ,
-        :user_id        => self.user_id
-      }, :without_protection => true)
+        self.state_changes.create({
+          :previous_state => 'cart',
+          :next_state     => 'complete',
+          :name           => 'order' ,
+          :user_id        => self.user_id
+        }, :without_protection => true)
+      end  
     end
-
+  
     def deliver_order_confirmation_email
       begin
         OrderMailer.confirm_email(self).deliver
@@ -442,12 +457,28 @@ module Spree
     def pending_payments
       payments.select {|p| p.state == "checkout"}
     end
+  def threeds_check_payments
+      payments.select {|p| p.state == "3ds_check"}
+    end
+    def process_3ds (md,pares)
+      begin
+        threeds_check_payments.each do |payment|
+            payment.payment_method.complete_3ds(md,pares) 
+
+        end
+      rescue Core::GatewayError
+        !!Spree::Config[:allow_checkout_on_gateway_error]
+      end
+    end
+
 
     def process_payments!
-      begin
+    logger.info 'IN processe payments><<<<<<<<<<<<<<<<<<<'
+     begin
         pending_payments.each do |payment|
+              logger.info 'IN processe payments step 1'
           break if payment_total >= total
-
+    logger.info 'IN processe payments step 2'
           payment.process!
 
           if payment.completed?
@@ -458,7 +489,7 @@ module Spree
         !!Spree::Config[:allow_checkout_on_gateway_error]
       end
     end
-
+    
     def billing_firstname
       bill_address.try(:firstname)
     end
@@ -562,7 +593,10 @@ module Spree
           InventoryUnit.decrease(self, line_item.variant, line_item.quantity)
         end
       end
+      
 
+
+        
       def after_resume
         unstock_items!
       end

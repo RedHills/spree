@@ -1,3 +1,5 @@
+require "uri"
+require "net/http"
 module Spree
   # Handles checkout logic.  This is somewhat contrary to standard REST convention since there is not actually a
   # Checkout object.  There's enough distinct logic specific to checkout which has nothing to do with updating an
@@ -20,35 +22,49 @@ module Spree
    
     helper 'spree/orders'
     
-    def callback_3dsecure
-    end  
     
     # Updates the order and advances to the next state (when possible.)
     # Overriden by the promo gem if it exists.
     def update
       if @order.update_attributes(object_params)
         fire_event('spree.checkout.update')
-
         if @order.next
           state_callback(:after)
+        @order = Order.find(@order.id)  
         else
           flash[:error] = t(:payment_processing_failed)
           respond_with(@order, :location => checkout_state_path(@order.state))
           return
         end
+        @order.reload
+        logger.info "$$$$$$$$$$Order.state=#{@order.state}"
+        if @order.threed_secure?
+          @form = form_for_3dsecure_verification.call
 
-        if @order.state == "complete" || @order.completed?
+          render :sage3dsecure  and return
+        elsif @order.state == "complete" || @order.completed?
+          logger.info '>>>>>> In Complete Branch' 
           flash.notice = t(:order_processed_successfully)
           flash[:commerce_tracking] = "nothing special"
           respond_with(@order, :location => completion_route)
         else
+          
           respond_with(@order, :location => checkout_state_path(@order.state))
         end
       else
+        logger.info  '>>>>>> OTHER CHECKOUT BRANCH' 
         respond_with(@order) { |format| format.html { render :edit } }
       end
     end
-
+    
+    def term_url
+        "https://213.94.198.253/callback3dsecure?authenticity_token=#{form_authenticity_token}"
+    end  
+    
+    def sage3dsecure
+      render :layout => false
+    end  
+    
     private
       def ensure_valid_state
         unless skip_state_validation?
@@ -78,7 +94,9 @@ module Spree
         end
         state_callback(:before)
       end
+     
 
+      
       # Provides a route to redirect after order completion
       def completion_route
         order_path(@order)
@@ -101,7 +119,19 @@ module Spree
         flash[:error] = t(:spree_inventory_error_flash_for_insufficient_quantity)
         redirect_to cart_path
       end
-
+      
+     def form_for_3dsecure_verification
+          
+            lambda do 
+              [ "<form action='#{ @order.acs_url}' method='post'>",
+                "<input type='hidden' name='PaReq' value='#{@order.pareq}'/>",
+                "<input type='hidden' name='TermUrl' value=#{term_url} '/>",
+                "<input type='hidden' name='MD' value='#{@order.md}'/>",
+                "<input type='submit' value='Click to begin authentication'/>",
+                "</form>"].join 
+          end    
+     end
+          
       def state_callback(before_or_after = :before)
         method_name = :"#{before_or_after}_#{@order.state}"
         send(method_name) if respond_to?(method_name, true)

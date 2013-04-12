@@ -61,7 +61,17 @@ module Spree
               event :authorize_return do
                 transition :to => :awaiting_return
               end
-
+              
+              event :requires_3d_secure do
+                transition :to => :threed_secure
+              end
+              event :complete_3d_secure do
+                transition :to => :complete
+              end
+              event :fail_3d_secure do
+                transition :to => :cancel
+              end
+              
               before_transition :to => :complete do |order|
                 begin
                   order.process_payments! if order.payment_required?

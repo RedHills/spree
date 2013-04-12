@@ -1,25 +1,34 @@
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     class SagePayGateway 
+      def self.set_callback_url(url)
+        @callback_url=url
+      end        
       
+      def self.get_callback_url()
+        @callback_url
+      end        
+
+
+   
+
       
-      
-      def complete_3ds(md, parres, options = {})
-        raise ArgumentError.new("Missing required parameter: MD") unless md
-        raise ArgumentError.new("Missing required parameter: PARes") unless pares
-        post = {:md => md, :pares => parres}
-        
-        commit(:purchase, post)
-      end
       
       private
-       def build_url(action)
+       def build_3ds_url(action)
         endpoint = [ :purchase, :authorization ].include?(action) ? "direct3dcallback" : TRANSACTIONS[action].downcase
         puts  "#{test? ? self.test_url : self.live_url}/#{endpoint}.vsp"
         "#{test? ? self.test_url : self.live_url}/#{endpoint}.vsp"
-        
-
-      end
+      end      
+      
+      def get_callback_url
+        raise(ArgumentError, "Callback URL not initialised") unless Spree::Config[:callback_url]
+        Spree::Config[:callback_url]
+      end  
+     
+     
     end  
   end  
 end  
+
+      

@@ -50,9 +50,9 @@ module Spree
       event :pend do
         transition :from => ['checkout', 'processing'], :to => 'pending'
       end
-      # With card payments this represents completing a purchase or capture transaction
+      # With card payments this represents waiting for 3ds confirm
       event :requires_3ds do
-        transition :from => ['processing', 'pending', 'checkout'], :to => 'pending'
+        transition :from => ['processing', 'pending', 'checkout'], :to => '3ds_check'
       end
       # With card payments this represents completing a purchase or capture transaction
       event :complete do

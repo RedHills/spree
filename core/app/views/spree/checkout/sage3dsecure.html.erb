@@ -12,15 +12,17 @@ You have chosen to use a card that is part of the 3D-Secure scheme, so you will 
   <img src="/images/mcsc_logo.gif" alt="MasterCard SecureCode">
   <br/>
 
-  <iframe id="3ds" width="450" height="450" frameborder="0" scrolling="no" title="Authentication with your bank will happen in this frame">
+    <iframe id="3ds" width="850" height="450" frameborder="0" scrolling="no" title="Authentication with your bank will happen in this frame">
     Should be replaced
   </iframe>
+  
 </div>
 </div>
 
+
 <div id="the_form">
   <div align="center">
-    <%= @form %>
+    <%=raw( @form )%>
   </div>
 </div>
 
@@ -32,4 +34,3 @@ You have chosen to use a card that is part of the 3D-Secure scheme, so you will 
   });
   </script>
 <% end %>
-
