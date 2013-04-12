@@ -6,6 +6,7 @@ module Spree
     respond_to :html
     
     def callback_3dsecure
+   
         if params[:MD] && params[:PARes]  
           order=Order.by_md(params[:MD])
           order.save!
@@ -20,13 +21,14 @@ module Spree
             order.save!
             order.complete_3d_secure!             
             logger.info "3d >>>> order set to complete"            
+            @url = "#{request.host_with_port}/checkout/payment"            
           else
              logger.info "3d failed by provider"            
-             flash.notice = t(:order_processed_successfully)
+            flash.error = "Order failed 3D Secure Check"      
              order.fail_3d_secure!
            
              order.get_3dpending_payment.fail_3d! if order.get_3dpending_payment
-              
+          @url = order_path(order)              
           end 
 
         else

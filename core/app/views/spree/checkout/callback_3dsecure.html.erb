@@ -6,14 +6,10 @@
 </head>
 
 <body >
-<form name="form" action="<%= @callback %>" method="POST" target="_top">
-  <input type="hidden" name="PaRes"  value="<%= params['PaRes'] %>"/>
-  <input type="hidden" name="MD"     value="<%= params['MD'] %>"/>
-  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>"/>
-  <NOSCRIPT>
-  <center><p>Please click button below to Authorise your card</p><input type="submit" value="Go"/></p></center>
-  </NOSCRIPT>
-</form>
+  <script type="text/javascript">
+    window.top.location.href = '<%=@url%>';
+  </script>
+
 </body>
 </html>
 
