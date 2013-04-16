@@ -58,7 +58,8 @@ module Spree
     end
     
     def term_url
-        "https://213.94.198.253/callback3dsecure?authenticity_token=#{form_authenticity_token}"
+        #"https://213.94.198.253/callback3dsecure?authenticity_token=#{form_authenticity_token}"
+        "https://213.94.198.253/callback3dsecure"
     end  
     
     def sage3dsecure

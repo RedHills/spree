@@ -6,7 +6,6 @@ module Spree
         if payment_method && payment_method.source_required?
          logger.info "!!!!!!!!!!!payment and source req!"          
           if source
-           logger.info "!!!!!!!!!!!#{source}"                      
             if !processing?
               if payment_method.supports?(source)
                 logger.info "!!!!!!!!!!!Pay method supports source"
@@ -165,14 +164,11 @@ module Spree
       protect_from_connection_error do
         logger.info "!!!!!!!!!!!In gateway action check env"                          
         check_environment
-        
-        logger.info "!!!!!!!!!!!After chck env"                  
         response = payment_method.send(action, (amount * 100).round,
                                        source,
                                        gateway_options)
         logger.info "!!!!!!!!!!!After call made"                                                         
         handle_response(response, success_state, :failure)
-        logger.info "!!!!!!!!!!!After respoernse"                                                                 
       end
     end
 

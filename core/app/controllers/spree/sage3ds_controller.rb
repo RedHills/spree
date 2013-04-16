@@ -33,6 +33,7 @@ module Spree
 
         else
           logger.error("Callback for 3d Secure missing params")
+          raise ActionController::RoutingError.new('Not Found')
 
         end  
     end 
