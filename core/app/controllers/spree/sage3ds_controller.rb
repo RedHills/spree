@@ -7,29 +7,33 @@ module Spree
     
     def callback_3dsecure
    
-        if params[:MD] && params[:PARes]  
+        if params[:MD] && params[:PaRes]  
+          base = Rails.env.development? ? "http://localhost/" : "https://#{request.host}/"
           order=Order.by_md(params[:MD])
           order.save!
           #Call sage with md and pares
           logger.info "About to call process_3ds"
-          response = order.process_3ds( params[:MD] , params[:PARes])
-          logger.info "Response #{response.to_s}"
-          if !response.empty? && response[:status]=='OK'
-            order.sage_vpstxid=response[:VPSTxId] 
-            order.sage_sage_txauthcode=response[:TxAuthNo]
-            flash.notice = t(:order_processed_successfully)
-            order.save!
-            order.complete_3d_secure!             
-            logger.info "3d >>>> order set to complete"            
-            @url = "#{request.host_with_port}/checkout/payment"            
-          else
-             logger.info "3d failed by provider"            
-            flash.error = "Order failed 3D Secure Check"      
-             order.fail_3d_secure!
-           
-             order.get_3dpending_payment.fail_3d! if order.get_3dpending_payment
-          @url = order_path(order)              
-          end 
+          begin          
+            response = order.process_3ds( params[:MD] , params[:PaRes])
+            if response.success? 
+              order.pareq=''
+              order.sage_vpstxid=response.params["VPSTxId"] 
+              order.sage_txauthcode=response.params["TxAuthNo"]
+              order.save!
+              order.complete_3d_secure!             
+              @url = "#{base}orders/#{order.number}"
+              respond_with(@url)     
+            end 
+            
+          rescue Core::GatewayError => ge
+            logger.info "3d failed by provider"            
+            order.fail_3d_secure!
+            order.get_3dpending_payment.fail_3d! if order.get_3dpending_payment
+            current_order=nil
+            @url = "#{base}cart?threed=0"
+      
+            respond_with(@url)                
+          end          
 
         else
           logger.error("Callback for 3d Secure missing params")

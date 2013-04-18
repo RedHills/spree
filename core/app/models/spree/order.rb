@@ -33,7 +33,7 @@ module Spree
 
     attr_accessible :line_items, :bill_address_attributes, :ship_address_attributes, :payments_attributes,
                     :ship_address, :bill_address, :payments_attributes, :line_items_attributes, :number,
-                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency, :md, :acs_url, :pareq
+                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency, :md, :acs_url, :pareq, :sage_vpstxid, :sage_txauthcode, :sage_security_key
     #extra attrs for 3d secure stuff
     attr_accessor  :requires_3dsecure, :pares
     if Spree.user_class
@@ -158,7 +158,10 @@ module Spree
     def completed?
       !! completed_at
     end
-
+    
+    def failed?
+        state=="cancel" 
+    end  
     # Indicates whether or not the user is allowed to proceed to checkout.  Currently this is implemented as a
     # check for whether or not there is at least one LineItem in the Order.  Feel free to override this logic
     # in your own application if you require additional steps before allowing a checkout.
@@ -263,7 +266,6 @@ module Spree
     end
     
     def is_awaiting_3ds
-        logger.info ">>>> called is awaiting 3ds #{self.md} | #{self.sage_vpstxid}"
         return self.md && !self.sage_vpstxid
     end  
     
@@ -393,7 +395,6 @@ module Spree
     def finalize!
       logger.info '>>>>IN FINALIZE'
       self.reload
-      logger.info '>>>>IN FINALIZE >> After reload'      
       if self.is_awaiting_3ds
         self.requires_3d_secure!
       else
@@ -464,24 +465,18 @@ module Spree
     end
     
     def process_3ds (md,pares)
-      begin
+
         threeds_check_payments.each do |payment|
-        return payment.complete_3ds(md,pares) 
+          return payment.complete_3ds(md,pares) 
         end
-    rescue Core::GatewayError => ge
-        logger.error "Problem on call => #{ge.to_s}"
-        !!Spree::Config[:allow_checkout_on_gateway_error]
-      end
+
     end
 
 
     def process_payments!
-    logger.info 'IN processe payments><<<<<<<<<<<<<<<<<<<'
      begin
         pending_payments.each do |payment|
-              logger.info 'IN processe payments step 1'
           break if payment_total >= total
-    logger.info 'IN processe payments step 2'
           payment.process!
 
           if payment.completed?

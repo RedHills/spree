@@ -37,7 +37,6 @@ module Spree
           return
         end
         @order.reload
-        logger.info "$$$$$$$$$$Order.state=#{@order.state}"
         if @order.threed_secure?
           @form = form_for_3dsecure_verification.call
 
@@ -52,14 +51,14 @@ module Spree
           respond_with(@order, :location => checkout_state_path(@order.state))
         end
       else
-        logger.info  '>>>>>> OTHER CHECKOUT BRANCH' 
         respond_with(@order) { |format| format.html { render :edit } }
       end
     end
     
     def term_url
-        #"https://213.94.198.253/callback3dsecure?authenticity_token=#{form_authenticity_token}"
-        "https://213.94.198.253/callback3dsecure"
+        #"https://213.94.198.253/callback3dsecure"
+        base = Rails.env.development? ? "http" : "https"
+        "#{base}://213.94.198.253/callback3dsecure?authenticity_token=#{form_authenticity_token}"
     end  
     
     def sage3dsecure
@@ -87,7 +86,7 @@ module Spree
         @order = current_order
         redirect_to cart_path and return unless @order and @order.checkout_allowed?
         raise_insufficient_quantity and return if @order.insufficient_stock_lines.present?
-        redirect_to cart_path and return if @order.completed?
+        redirect_to cart_path and return if @order.completed? || @order.failed?
 
         if params[:state]
           redirect_to checkout_state_path(@order.state) if @order.can_go_to_state?(params[:state]) && !skip_state_validation?

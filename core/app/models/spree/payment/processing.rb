@@ -2,15 +2,11 @@ module Spree
   class Payment < ActiveRecord::Base
     module Processing
       def process!
-       logger.info "!!!!!!!!!!!Call process!"
         if payment_method && payment_method.source_required?
-         logger.info "!!!!!!!!!!!payment and source req!"          
           if source
             if !processing?
               if payment_method.supports?(source)
-                logger.info "!!!!!!!!!!!Pay method supports source"
                 if payment_method.auto_capture?
-                logger.info "!!!!!!!!!!!Pay method auto capture"                  
                   purchase!
                 else
                   authorize!
@@ -32,23 +28,11 @@ module Spree
       end
 
       def purchase!
-        logger.info "!!!!!!!!!!!B4 start processing"                  
         started_processing!
-        logger.info "!!!!!!!!!!!After start processing"                  
         gateway_action(source, :purchase, :complete)
       end
     
-     def complete_3ds(md, pares, options = {})
-        raise ArgumentError.new("Missing required parameter: MD") unless md
-        raise ArgumentError.new("Missing required parameter: PARes") unless pares
-        post = {:MD => md, :PARes => pares}
-        
-        commit_3ds(:purchase, post)
-      end
-     
-     def commit_3ds(action, parameters)
-        response = parse( ssl_post(build_3ds_url(action), post_data(action, parameters)) )
-      end       
+    
             
       def capture!
         return true if completed?
@@ -125,8 +109,10 @@ module Spree
     end
     
     def complete_3ds(md,pares)
-      response = payment_method.complete_3ds(md,pares)
+      pm = Spree::Gateway::SagePay.new 
+      response = pm.complete_3ds(md,pares)
       handle_response(response, :complete, :failure)
+      response
     end  
     
     def partial_credit(amount)
@@ -162,12 +148,11 @@ module Spree
 
     def gateway_action(source, action, success_state)
       protect_from_connection_error do
-        logger.info "!!!!!!!!!!!In gateway action check env"                          
         check_environment
+        logger.info 'Payment method >>>> ' + payment_method.to_s
         response = payment_method.send(action, (amount * 100).round,
                                        source,
                                        gateway_options)
-        logger.info "!!!!!!!!!!!After call made"                                                         
         handle_response(response, success_state, :failure)
       end
     end
@@ -183,12 +168,10 @@ module Spree
         self.send("#{success_state}!")
       elsif response.params["Status"]=='3DAUTH'
         logger.info '>>>>> UPDATES 3DAuth required'
-        logger.info '>>>>>MD'    +response.params["MD"]    
         order.md=response.params["MD"]
         order.acs_url=response.params["ACSURL"]
         order.pareq=response.params["PAReq"]
         order.save! 
-        logger.info '>>>>>After save'   
         self.send("requires_3ds!")   
       else
         self.send(failure_state)

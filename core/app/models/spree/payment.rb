@@ -48,7 +48,7 @@ module Spree
       end
       # When processing during checkout fails
       event :failure do
-        transition :from => ['pending', 'processing'], :to => 'failed'
+        transition :from => ['pending', 'processing','3ds_check'], :to => 'failed'
       end
       event :fail_3d do
         transition :from => ['pending', 'processing','3ds_check','balance_due'], :to => 'failed_3d'
@@ -63,7 +63,7 @@ module Spree
       end
       # With card payments this represents completing a purchase or capture transaction
       event :complete do
-        transition :from => ['processing', 'pending', 'checkout'], :to => 'completed'
+        transition :from => ['processing', 'pending', 'checkout','3ds_check'], :to => 'completed'
       end
       event :void do
         transition :from => ['pending', 'completed', 'checkout'], :to => 'void'

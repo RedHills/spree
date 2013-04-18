@@ -2,17 +2,22 @@
 module Spree
   class Gateway::SagePay < Gateway
       include ActiveMerchant::PostsData 
+      
+      puts "Patching #{self.class.name}"
+      
     preference :login, :string
     preference :password, :string
     preference :account, :string
     
     attr_accessible :preferred_login, :preferred_password, :preferred_account
-      def complete_3ds (md,pares)
+
+     def complete_3ds (md,pares)
 
         post = "MD=#{md}&PARes=#{pares}"
         commit_3ds(:callback, post)
       end
-      def provider_class
+    
+    def provider_class
       ActiveMerchant::Billing::SagePayGateway
     end
 
@@ -20,12 +25,13 @@ module Spree
   
         def commit_3ds(action, parameters)
         response = parse( ssl_post(build_3ds_url(action), parameters) )
-ActiveMerchant::Billing::Response.new(response["Status"] == 'OK', message_from(response), response,
+        formatted_resp =ActiveMerchant::Billing::Response.new(response["Status"] == 'OK', message_from(response), response,
           :test => test?,
           :authorization => authorization_from(response, parameters, action),
           
           :cvv_result => response["CV2Result"]
-        )        
+        )
+        formatted_resp        
         end     
    def authorization_from(response, params, action)
          [ "",

@@ -36,6 +36,13 @@ module Spree
     # Shows the current incomplete order from the session
     def edit
       @order = current_order(true)
+      if @order.failed? && params[:threed] && params[:threed]=="0"
+        logger.info '>>>>>>>>>>Order failed. Move to new one.'  
+        flash[:error]='Failed 3D Secure. Order invalid.'
+        session[:order_id]=nil
+        @current_order=nil
+        @order = current_order(true)        
+      end  
       associate_user
     end
 
