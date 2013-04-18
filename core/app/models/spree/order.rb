@@ -464,7 +464,7 @@ module Spree
       payments.select {|p| p.state == "3ds_check"}
     end
     
-    def process_3ds (md,pares)
+    def defprocess_3ds (md,pares)
 
         threeds_check_payments.each do |payment|
           return payment.complete_3ds(md,pares) 
