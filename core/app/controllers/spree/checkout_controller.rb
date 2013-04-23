@@ -57,8 +57,8 @@ module Spree
     
     def term_url
         #"https://213.94.198.253/callback3dsecure"
-        base = Rails.env.development? ? "http" : "https"
-        "#{base}://213.94.198.253/callback3dsecure?authenticity_token=#{form_authenticity_token}"
+        base = Rails.env.development? ? "http://213.94.198.253" : "https://#{request.host}"
+        "#{base}/callback3dsecure?authenticity_token=#{form_authenticity_token}"
     end  
     
     def sage3dsecure
