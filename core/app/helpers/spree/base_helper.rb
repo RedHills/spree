@@ -93,13 +93,13 @@ module Spree
       return "" if current_page?("/")  
       separator = raw(separator)
       crumbs = [content_tag(:li, link_to(t(:home) , spree.root_path) + separator)]
-      if taxon
+      if product
+        crumbs << content_tag(:li, link_to(t(:products) , products_path) + separator)     
+        crumbs << content_tag(:li, content_tag(:span, link_to(product.name , product_path(product))))
+      elsif taxon
         crumbs << content_tag(:li, link_to(t(:products) , products_path) + separator)
         crumbs << taxon.ancestors.collect { |ancestor| content_tag(:li, link_to(ancestor.name , seo_url(ancestor)) + separator) } unless taxon.ancestors.empty?
         crumbs << content_tag(:li, content_tag(:span, link_to(taxon.name , seo_url(taxon))))
-      elsif product
-        crumbs << content_tag(:li, link_to(t(:products) , products_path) + separator)     
-        crumbs << content_tag(:li, content_tag(:span, link_to(product.name , seo_url(product))))
       else  
         crumbs << content_tag(:li, content_tag(:span, t(:products)))
       end
