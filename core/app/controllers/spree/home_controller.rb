@@ -1,6 +1,7 @@
 module Spree
   class HomeController < Spree::StoreController
     helper 'spree/products'
+    ssl_allowed :index
     respond_to :html
 
     def index
