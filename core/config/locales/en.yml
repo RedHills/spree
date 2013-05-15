@@ -328,6 +328,7 @@ en:
   code: Code
   combine: Combine
   complete: complete
+  Complete: complete  
   complete_list: "Complete List"
   configuration: Configuration
   configuration_options: "Configuration Options"
@@ -1078,6 +1079,7 @@ en:
   type: Type
   type_to_search: Type to search
   unable_ship_method: "Unable to generate shipping methods due to a server error."
+
   unable_to_authorize_credit_card: "Unable to Authorize Credit Card"
   unable_to_capture_credit_card: "Unable to Capture Credit Card"
   unable_to_connect_to_gateway: "Unable to connect to gateway."
