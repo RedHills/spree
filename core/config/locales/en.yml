@@ -328,7 +328,7 @@ en:
   code: Code
   combine: Combine
   complete: complete
-  Complete: complete  
+  complete3d: Complete  
   complete_list: "Complete List"
   configuration: Configuration
   configuration_options: "Configuration Options"
@@ -668,6 +668,7 @@ en:
     canceled: canceled
     cart: cart
     complete: complete
+    complete3d: complete    
     confirm: confirm
     delivery: delivery
     payment: payment
@@ -717,6 +718,7 @@ en:
   payment_states:
     balance_due: balance due
     completed: completed
+    complete: complete
     checkout: checkout
     credit_owed: credit owed
     failed: failed
