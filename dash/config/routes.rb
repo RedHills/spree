@@ -1,5 +1,5 @@
 Spree::Core::Engine.routes.prepend do
-  match '/admin' => 'admin/overview#index', :as => :admin
+  #match '/admin' => 'admin/overview#index', :as => :admin
 
   get '/admin/analytics/register' => 'admin/analytics#register', :as => :admin_analytics_register
   get '/admin/analytics/sync' => 'admin/analytics#sync', :as => :admin_analytics_sync

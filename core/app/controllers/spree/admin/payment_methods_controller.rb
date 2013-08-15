@@ -27,7 +27,7 @@ module Spree
           @payment_method.update_column(:type, payment_method_type)
           @payment_method = PaymentMethod.find(params[:id])
         end
-
+ 
         payment_method_params = params[ActiveModel::Naming.param_key(@payment_method)] || {}
         attributes = params[:payment_method].merge(payment_method_params)
         attributes.each do |k,v|
